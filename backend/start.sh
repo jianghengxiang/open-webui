@@ -79,6 +79,26 @@ else
     ARGS=(--workers "$UVICORN_WORKERS")
 fi
 
+$PYTHON_CMD <<'PY'
+import os
+try:
+    import nltk
+    data_dir = os.environ.get('NLTK_DATA') or None
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt', download_dir=data_dir, quiet=True)
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        try:
+            nltk.download('punkt_tab', download_dir=data_dir, quiet=True)
+        except Exception:
+            pass
+except Exception:
+    pass
+PY
+
 # Run uvicorn
 WEBUI_SECRET_KEY="$WEBUI_SECRET_KEY" exec "$PYTHON_CMD" -m uvicorn open_webui.main:app \
     --host "$HOST" \
